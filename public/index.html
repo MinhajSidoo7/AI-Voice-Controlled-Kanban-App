@@ -696,15 +696,23 @@
             statusText.innerText = `⏳ Processing: "${commandText}"...`;
 
             try {
-                const response = await fetch('/api/command', {
+                const payload = JSON.stringify({
+                    transcript: commandText,
+                    board_state: currentBoard,
+                    provider: document.getElementById('engine-select').value
+                });
+                let response = await fetch('/command', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        transcript: commandText,
-                        board_state: currentBoard,
-                        provider: document.getElementById('engine-select').value
-                    })
+                    body: payload
                 });
+                if (!response.ok) {
+                    response = await fetch('/api/command', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: payload
+                    });
+                }
 
                 if (!response.ok) {
                     throw new Error(`API returned ${response.status}`);
