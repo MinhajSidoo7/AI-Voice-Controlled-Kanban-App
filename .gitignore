@@ -1,0 +1,23 @@
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyi
+
+# Shared runtime state
+board_state.json
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+
+# Vercel
+.vercel/

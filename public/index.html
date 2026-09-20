@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎙️ AI Voice-Controlled Kanban App</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📋</text></svg>">
+    <style>
+        :root {
+            --bg-base: #0b0f19;
+            --bg-surface: #161f30;
+            --bg-column: #1e293b;
+            --bg-card: #0f172a;
+            --border: #334155;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .badge {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .controls-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            background: var(--bg-surface);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select, input[type="text"] {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        select:focus, input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: auto;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .status-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .progress-container {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .kanban-board {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            overflow-x: auto;
+            flex: 1;
+            padding-bottom: 20px;
+        }
+
+        .kanban-column {
+            background: var(--bg-column);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 320px;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .kanban-column.drag-over {
+            border-color: var(--primary);
+            background: #25334d;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.4);
+            border-top-left-radius: 11px;
+            border-top-right-radius: 11px;
+        }
+
+        .col-title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .col-count {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .card-list {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 80px;
+            max-height: 580px;
+            overflow-y: auto;
+        }
+
+        .kanban-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            overflow: hidden;
+            cursor: grab;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .kanban-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        .kanban-card.dragging {
+            opacity: 0.4;
+            cursor: grabbing;
+        }
+
+        .card-priority {
+            width: 5px;
+            flex-shrink: 0;
+        }
+        .priority-high { background: var(--danger); }
+        .priority-medium { background: var(--warning); }
+        .priority-low { background: var(--success); }
+
+        .card-content {
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card-text {
+            font-size: 14px;
+            color: var(--text-main);
+            line-height: 1.4;
+            word-break: break-word;
+            outline: none;
+        }
+
+        .card-text[contenteditable="true"] {
+            background: rgba(99, 102, 241, 0.1);
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .action-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .add-card-area {
+            padding: 10px 12px;
+        }
+
+        .add-card-input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .add-card-input:focus {
+            border-color: var(--primary);
+            border-style: solid;
+        }
+
+        /* Floating Mic Button */
+        #mic-btn {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-size: 26px;
+            cursor: pointer;
+            box-shadow: 0 6px 24px rgba(99, 102, 241, 0.55);
+            transition: all 0.25s;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #mic-btn:hover {
+            transform: scale(1.05);
+        }
+
+        #mic-btn.listening {
+            background: var(--danger);
+            box-shadow: 0 6px 28px rgba(239, 68, 68, 0.7);
+            transform: scale(1.1);
+            animation: pulse 1.5s infinite;
+        }
+
+        #mic-btn.processing {
+            background: var(--warning);
+            box-shadow: 0 6px 28px rgba(245, 158, 11, 0.65);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1 id="board-title">🚀 Sprint Board</h1>
+            <span class="badge">AI Voice-Enabled</span>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <input type="text" id="search-input" placeholder="🔍 Search tasks..." style="width: 200px;">
+            <span id="task-stat-total" class="tag" style="padding: 6px 12px; font-size: 13px;">0 tasks</span>
+            <span id="task-stat-done" class="tag" style="padding: 6px 12px; font-size: 13px; color: #34d399;">0 done</span>
+        </div>
+    </header>
+
+    <div class="controls-bar">
+        <div class="input-group" style="flex: 3;">
+            <label>🗣️ Voice / Text Command</label>
+            <input type="text" id="command-input" placeholder="Click floating 🎤 to speak, or type e.g. 'Add deploy app to done with high priority'...">
+        </div>
+        <div class="input-group" style="flex: 1;">
+            <label>🧠 AI Engine</label>
+            <select id="engine-select">
+                <option value="auto">Auto (Gemini / Secret Manager)</option>
+                <option value="gemini">Google Gemini</option>
+                <option value="openai">OpenAI (gpt-4o)</option>
+                <option value="local">Local Rule Engine</option>
+            </select>
+        </div>
+        <div class="input-group" style="flex: 1;">
+            <label>📁 Preset Template</label>
+            <select id="preset-select">
+                <option value="🚀 Product Launch">🚀 Product Launch</option>
+                <option value="🎓 Study Plan">🎓 Study Plan</option>
+                <option value="🐛 Bug Tracker">🐛 Bug Tracker</option>
+                <option value="🏠 Empty Board">🏠 Empty Board</option>
+            </select>
+        </div>
+        <button class="btn" id="execute-btn">▶ Execute</button>
+    </div>
+
+    <div class="status-box">
+        <div id="status-text">⚡ Ready. Click the floating microphone button or enter a command above.</div>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="kanban-board" id="kanban-board"></div>
+
+    <button id="mic-btn" title="Click to speak a voice command">🎤</button>
+
+    <script>
+        // Preset board definitions
+        const PRESETS = {
+            "🚀 Product Launch": {
+                "title": "🚀 Product Launch",
+                "columns": [
+                    {
+                        "id": "backlog", "title": "📦 Backlog", "color": "#6366f1",
+                        "cards": [
+                            {"id": "p1", "text": "Market research & competitor pricing", "priority": "high", "tags": ["research"]},
+                            {"id": "p2", "text": "User persona definition & interviews", "priority": "medium", "tags": ["product"]},
+                            {"id": "p3", "text": "Brand assets and design system", "priority": "low", "tags": ["design"]}
+                        ]
+                    },
+                    {
+                        "id": "progress", "title": "🔨 In Progress", "color": "#f59e0b",
+                        "cards": [
+                            {"id": "p4", "text": "Build responsive SaaS landing page", "priority": "high", "tags": ["dev"]},
+                            {"id": "p5", "text": "Draft launch announcement newsletter", "priority": "medium", "tags": ["marketing"]}
+                        ]
+                    },
+                    {
+                        "id": "review", "title": "👀 Review", "color": "#8b5cf6",
+                        "cards": [
+                            {"id": "p6", "text": "Record 2-minute product demo video", "priority": "high", "tags": ["video"]}
+                        ]
+                    },
+                    {
+                        "id": "done", "title": "✅ Done", "color": "#10b981",
+                        "cards": [
+                            {"id": "p7", "text": "Configure automated CI/CD pipelines", "priority": "medium", "tags": ["devops"]}
+                        ]
+                    }
+                ]
+            },
+            "🎓 Study Plan": {
+                "title": "🎓 Study Plan",
+                "columns": [
+                    {"id": "topics", "title": "📚 Topics", "color": "#6366f1", "cards": [{"id": "s1", "text": "Transformer architecture & self-attention", "priority": "high", "tags": ["nlp"]}]},
+                    {"id": "studying", "title": "📖 Studying", "color": "#f59e0b", "cards": [{"id": "s2", "text": "Agent tool calling and MCP protocol", "priority": "high", "tags": ["agents"]}]},
+                    {"id": "practice", "title": "🧪 Practice", "color": "#8b5cf6", "cards": []},
+                    {"id": "mastered", "title": "🏆 Mastered", "color": "#10b981", "cards": [{"id": "s3", "text": "Python concurrency", "priority": "low", "tags": ["python"]}]}
+                ]
+            },
+            "🐛 Bug Tracker": {
+                "title": "🐛 Bug Tracker",
+                "columns": [
+                    {"id": "reported", "title": "🐛 Reported", "color": "#ef4444", "cards": [{"id": "b1", "text": "Safari audio permission crash", "priority": "high", "tags": ["safari"]}]},
+                    {"id": "investigating", "title": "🔬 Investigating", "color": "#f59e0b", "cards": []},
+                    {"id": "fixing", "title": "🔧 Fixing", "color": "#6366f1", "cards": []},
+                    {"id": "done", "title": "✅ Resolved", "color": "#10b981", "cards": [{"id": "b2", "text": "XSS patch", "priority": "high", "tags": ["security"]}]}
+                ]
+            },
+            "🏠 Empty Board": {
+                "title": "🏠 My Project Board",
+                "columns": [
+                    {"id": "todo", "title": "📋 To Do", "color": "#6366f1", "cards": []},
+                    {"id": "progress", "title": "🔨 In Progress", "color": "#f59e0b", "cards": []},
+                    {"id": "review", "title": "👀 Review", "color": "#8b5cf6", "cards": []},
+                    {"id": "done", "title": "✅ Done", "color": "#10b981", "cards": []}
+                ]
+            }
+        };
+
+        let currentBoard = JSON.parse(JSON.stringify(PRESETS["🚀 Product Launch"]));
+
+        // Render board UI
+        function renderBoard() {
+            const container = document.getElementById('kanban-board');
+            container.innerHTML = '';
+
+            let totalTasks = 0;
+            let doneTasks = 0;
+
+            currentBoard.columns.forEach((col, colIdx) => {
+                const colCards = col.cards || [];
+                totalTasks += colCards.length;
+                if (col.id === 'done' || col.id === 'mastered') {
+                    doneTasks += colCards.length;
+                }
+
+                const colEl = document.createElement('div');
+                colEl.className = 'kanban-column';
+                colEl.dataset.colIdx = colIdx;
+                colEl.dataset.colId = col.id;
+
+                colEl.innerHTML = `
+                    <div class="column-header" style="border-top: 3px solid ${col.color}">
+                        <span class="col-title">${col.title}</span>
+                        <span class="col-count" style="background: ${col.color}22; color: ${col.color}">${colCards.length}</span>
+                    </div>
+                    <div class="card-list" data-col-idx="${colIdx}">
+                        ${colCards.map((card, cardIdx) => `
+                            <div class="kanban-card" draggable="true" data-col-idx="${colIdx}" data-card-idx="${cardIdx}">
+                                <div class="card-priority priority-${card.priority || 'medium'}"></div>
+                                <div class="card-content">
+                                    <div class="card-text" data-col-idx="${colIdx}" data-card-idx="${cardIdx}">${card.text}</div>
+                                    <div class="card-footer">
+                                        <div class="card-tags">
+                                            ${(card.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}
+                                        </div>
+                                        <div class="card-actions">
+                                            <button class="action-btn cycle-prio" data-col-idx="${colIdx}" data-card-idx="${cardIdx}" title="Cycle Priority">
+                                                ${card.priority === 'high' ? '🔴' : card.priority === 'low' ? '🟢' : '🟡'}
+                                            </button>
+                                            <button class="action-btn del-card" data-col-idx="${colIdx}" data-card-idx="${cardIdx}" title="Delete">✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="add-card-area">
+                        <input type="text" class="add-card-input" data-col-idx="${colIdx}" placeholder="+ Add card… (press Enter)">
+                    </div>
+                `;
+
+                container.appendChild(colEl);
+            });
+
+            // Update stats
+            document.getElementById('task-stat-total').innerText = `${totalTasks} tasks`;
+            const pct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+            document.getElementById('task-stat-done').innerText = `${doneTasks} done (${pct}%)`;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+            document.getElementById('board-title').innerText = currentBoard.title || "Kanban Board";
+
+            bindEvents();
+        }
+
+        // Drag and drop & click events
+        let draggedCard = null;
+        let sourceColIdx = null;
+        let sourceCardIdx = null;
+
+        function bindEvents() {
+            document.querySelectorAll('.kanban-card').forEach(card => {
+                card.addEventListener('dragstart', (e) => {
+                    draggedCard = card;
+                    sourceColIdx = parseInt(card.dataset.colIdx);
+                    sourceCardIdx = parseInt(card.dataset.cardIdx);
+                    card.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', '');
+                });
+
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('dragging');
+                    document.querySelectorAll('.kanban-column').forEach(c => c.classList.remove('drag-over'));
+                });
+            });
+
+            document.querySelectorAll('.kanban-column').forEach(col => {
+                col.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    col.classList.add('drag-over');
+                });
+
+                col.addEventListener('dragleave', (e) => {
+                    if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+                });
+
+                col.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    col.classList.remove('drag-over');
+                    const targetColIdx = parseInt(col.dataset.colIdx);
+                    if (sourceColIdx === null || isNaN(targetColIdx)) return;
+
+                    const [moved] = currentBoard.columns[sourceColIdx].cards.splice(sourceCardIdx, 1);
+                    currentBoard.columns[targetColIdx].cards.push(moved);
+                    renderBoard();
+                });
+            });
+
+            // Add card input
+            document.querySelectorAll('.add-card-input').forEach(input => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        const val = input.value.trim();
+                        if (!val) return;
+                        const colIdx = parseInt(input.dataset.colIdx);
+                        currentBoard.columns[colIdx].cards.push({
+                            id: String(Date.now()).slice(-6),
+                            text: val,
+                            priority: 'medium',
+                            tags: []
+                        });
+                        renderBoard();
+                    }
+                });
+            });
+
+            // Card text inline edit
+            document.querySelectorAll('.card-text').forEach(textEl => {
+                textEl.addEventListener('click', () => {
+                    textEl.contentEditable = 'true';
+                    textEl.focus();
+                });
+
+                textEl.addEventListener('blur', () => {
+                    textEl.contentEditable = 'false';
+                    const colIdx = parseInt(textEl.dataset.colIdx);
+                    const cardIdx = parseInt(textEl.dataset.cardIdx);
+                    currentBoard.columns[colIdx].cards[cardIdx].text = textEl.innerText.trim();
+                });
+
+                textEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        textEl.blur();
+                    }
+                });
+            });
+
+            // Delete card
+            document.querySelectorAll('.del-card').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const colIdx = parseInt(btn.dataset.colIdx);
+                    const cardIdx = parseInt(btn.dataset.cardIdx);
+                    currentBoard.columns[colIdx].cards.splice(cardIdx, 1);
+                    renderBoard();
+                });
+            });
+
+            // Priority cycle
+            document.querySelectorAll('.cycle-prio').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const colIdx = parseInt(btn.dataset.colIdx);
+                    const cardIdx = parseInt(btn.dataset.cardIdx);
+                    const card = currentBoard.columns[colIdx].cards[cardIdx];
+                    const cycle = { 'high': 'medium', 'medium': 'low', 'low': 'high' };
+                    card.priority = cycle[card.priority || 'medium'] || 'medium';
+                    renderBoard();
+                });
+            });
+        }
+
+        // Search filter
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase().trim();
+            document.querySelectorAll('.kanban-card').forEach(card => {
+                const text = (card.querySelector('.card-text')?.innerText || '').toLowerCase();
+                const match = !q || text.includes(q);
+                card.style.display = match ? 'flex' : 'none';
+            });
+        });
+
+        // Preset switcher
+        document.getElementById('preset-select').addEventListener('change', (e) => {
+            const selected = e.target.value;
+            if (PRESETS[selected]) {
+                currentBoard = JSON.parse(JSON.stringify(PRESETS[selected]));
+                renderBoard();
+                document.getElementById('status-text').innerText = `📌 Loaded "${selected}" preset.`;
+            }
+        });
+
+        // Execute voice or text command via Serverless API
+        async function executeCommand(commandText) {
+            if (!commandText || !commandText.trim()) return;
+
+            const statusText = document.getElementById('status-text');
+            statusText.innerText = `⏳ Processing: "${commandText}"...`;
+
+            try {
+                const response = await fetch('/api/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transcript: commandText,
+                        board_state: currentBoard,
+                        provider: document.getElementById('engine-select').value
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API returned ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.board_state) {
+                    currentBoard = data.board_state;
+                    renderBoard();
+                }
+                statusText.innerText = data.status || `Executed command: ${commandText}`;
+            } catch (err) {
+                console.error(err);
+                statusText.innerText = `⚠️ Error executing command: ${err.message}. Ensure backend is running.`;
+            }
+        }
+
+        // Execute button
+        document.getElementById('execute-btn').addEventListener('click', () => {
+            const input = document.getElementById('command-input');
+            executeCommand(input.value);
+            input.value = '';
+        });
+
+        document.getElementById('command-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('execute-btn').click();
+            }
+        });
+
+        // Web Speech API Integration
+        const micBtn = document.getElementById('mic-btn');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            let listening = false;
+
+            micBtn.addEventListener('click', () => {
+                if (listening) return;
+                listening = true;
+                micBtn.innerText = '🔴';
+                micBtn.className = 'listening';
+                try {
+                    recognition.start();
+                } catch (e) {
+                    listening = false;
+                    micBtn.innerText = '🎤';
+                    micBtn.className = '';
+                }
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('command-input').value = transcript;
+                micBtn.innerText = '⏳';
+                micBtn.className = 'processing';
+
+                executeCommand(transcript).finally(() => {
+                    micBtn.innerText = '🎤';
+                    micBtn.className = '';
+                    listening = false;
+                });
+            };
+
+            recognition.onerror = () => {
+                micBtn.innerText = '🎤';
+                micBtn.className = '';
+                listening = false;
+            };
+
+            recognition.onend = () => {
+                if (listening) {
+                    micBtn.innerText = '🎤';
+                    micBtn.className = '';
+                    listening = false;
+                }
+            };
+        } else {
+            micBtn.title = "Speech recognition not supported in this browser. Use Chrome/Edge.";
+            micBtn.style.opacity = '0.5';
+        }
+
+        // Initial render
+        renderBoard();
+    </script>
+</body>
+</html>
