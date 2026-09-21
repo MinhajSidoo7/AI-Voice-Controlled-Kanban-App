@@ -373,10 +373,202 @@
             box-shadow: 0 6px 28px rgba(245, 158, 11, 0.65);
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        /* Authentication & User UI */
+        .auth-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(135deg, var(--primary) 0%, #818cf8 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .sync-badge {
+            font-size: 11px;
+            color: #34d399;
+            font-weight: 600;
+            transition: opacity 0.3s;
+            margin-right: 4px;
+        }
+
+        .btn-outline-sm {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-outline-sm:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .btn-auth-trigger {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-auth-trigger:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        /* Modal Overlay & Card */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 380px;
+            max-width: 92vw;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            animation: slideUp 0.2s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(16px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .modal-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 4px;
+        }
+
+        .modal-close-btn:hover {
+            color: var(--text-main);
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+            gap: 4px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .auth-tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+        }
+
+        .auth-error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .text-link-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+
+        .text-link-btn:hover {
+            color: var(--text-main);
         }
     </style>
 </head>
@@ -387,10 +579,11 @@
             <h1 id="board-title">🚀 Sprint Board</h1>
             <span class="badge">AI Voice-Enabled</span>
         </div>
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <input type="text" id="search-input" placeholder="🔍 Search tasks..." style="width: 200px;">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <input type="text" id="search-input" placeholder="🔍 Search tasks..." style="width: 180px;">
             <span id="task-stat-total" class="tag" style="padding: 6px 12px; font-size: 13px;">0 tasks</span>
             <span id="task-stat-done" class="tag" style="padding: 6px 12px; font-size: 13px; color: #34d399;">0 done</span>
+            <div id="auth-header-container" class="auth-container"></div>
         </div>
     </header>
 
@@ -429,6 +622,35 @@
     </div>
 
     <div class="kanban-board" id="kanban-board"></div>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="auth-modal-title">🔐 Sign In</h3>
+                <button type="button" id="auth-modal-close" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="auth-tabs">
+                <button type="button" id="tab-login" class="auth-tab active">Sign In</button>
+                <button type="button" id="tab-register" class="auth-tab">Create Account</button>
+            </div>
+            <form id="auth-form">
+                <div class="input-group" style="margin-bottom: 12px;">
+                    <label for="auth-username">Username</label>
+                    <input type="text" id="auth-username" required minlength="3" placeholder="Enter username (min 3 chars)" autocomplete="username">
+                </div>
+                <div class="input-group" style="margin-bottom: 16px;">
+                    <label for="auth-password">Password</label>
+                    <input type="password" id="auth-password" required minlength="4" placeholder="Enter password (min 4 chars)" autocomplete="current-password">
+                </div>
+                <div id="auth-error-msg" class="auth-error" style="display: none;"></div>
+                <button type="submit" id="auth-submit-btn" class="btn" style="width: 100%;">Sign In</button>
+            </form>
+            <div style="margin-top: 16px; text-align: center;">
+                <button id="guest-btn" class="text-link-btn" type="button">Continue as Guest / Offline</button>
+            </div>
+        </div>
+    </div>
 
     <button id="mic-btn" title="Click to speak a voice command">🎤</button>
 
@@ -497,6 +719,248 @@
         };
 
         let currentBoard = JSON.parse(JSON.stringify(PRESETS["🚀 Product Launch"]));
+
+        // ─── Authentication & Cloud Sync ─────────────────────────────────
+        const TOKEN_STORAGE_KEY = 'kanban_auth_token';
+        const USER_STORAGE_KEY = 'kanban_auth_user';
+        let currentUser = null;
+        let jwtToken = localStorage.getItem(TOKEN_STORAGE_KEY) || null;
+        let isRegisterMode = false;
+        let autoSaveTimer = null;
+
+        function getAuthHeaders() {
+            const headers = { 'Content-Type': 'application/json' };
+            if (jwtToken) {
+                headers['Authorization'] = `Bearer ${jwtToken}`;
+            }
+            return headers;
+        }
+
+        function updateAuthHeaderUI() {
+            const container = document.getElementById('auth-header-container');
+            if (!container) return;
+
+            if (currentUser) {
+                const initial = (currentUser.username || 'U')[0].toUpperCase();
+                container.innerHTML = `
+                    <div class="user-pill">
+                        <span class="user-avatar">${initial}</span>
+                        <span>${currentUser.username}</span>
+                        <span id="sync-indicator" class="sync-badge" title="Changes auto-saved to cloud">☁️ Saved</span>
+                    </div>
+                    <button class="btn-outline-sm" id="logout-btn" title="Sign out of your account">Log Out</button>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            } else {
+                container.innerHTML = `
+                    <button class="btn-auth-trigger" id="open-auth-btn">
+                        <span>🔐</span> Sign In
+                    </button>
+                `;
+                document.getElementById('open-auth-btn').addEventListener('click', () => openAuthModal(false));
+            }
+        }
+
+        function scheduleAutoSave() {
+            if (!currentUser || !jwtToken) return;
+            const syncBadge = document.getElementById('sync-indicator');
+            if (syncBadge) {
+                syncBadge.innerText = '☁️ Saving...';
+                syncBadge.style.opacity = '1';
+            }
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(async () => {
+                try {
+                    let res = await fetch('/api/user/board', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ board_state: currentBoard })
+                    });
+                    if (!res.ok) {
+                        res = await fetch('/user/board', {
+                            method: 'POST',
+                            headers: getAuthHeaders(),
+                            body: JSON.stringify({ board_state: currentBoard })
+                        });
+                    }
+                    if (res.ok) {
+                        if (syncBadge) {
+                            syncBadge.innerText = '☁️ Saved';
+                            setTimeout(() => {
+                                if (syncBadge && syncBadge.innerText === '☁️ Saved') syncBadge.style.opacity = '0.7';
+                            }, 2000);
+                        }
+                    } else {
+                        if (syncBadge) syncBadge.innerText = '⚠️ Save failed';
+                    }
+                } catch (err) {
+                    console.warn("Auto-save sync offline:", err);
+                    if (syncBadge) syncBadge.innerText = '⚠️ Offline';
+                }
+            }, 600);
+        }
+
+        function openAuthModal(registerMode = false) {
+            isRegisterMode = registerMode;
+            const modal = document.getElementById('auth-modal');
+            const title = document.getElementById('auth-modal-title');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const tabLogin = document.getElementById('tab-login');
+            const tabReg = document.getElementById('tab-register');
+            const errorMsg = document.getElementById('auth-error-msg');
+
+            errorMsg.style.display = 'none';
+            errorMsg.innerText = '';
+
+            if (isRegisterMode) {
+                title.innerText = '✨ Create Account';
+                submitBtn.innerText = 'Create Account';
+                tabReg.classList.add('active');
+                tabLogin.classList.remove('active');
+            } else {
+                title.innerText = '🔐 Sign In to Kanban';
+                submitBtn.innerText = 'Sign In';
+                tabLogin.classList.add('active');
+                tabReg.classList.remove('active');
+            }
+
+            modal.style.display = 'flex';
+            document.getElementById('auth-username').focus();
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+            document.getElementById('auth-username').value = '';
+            document.getElementById('auth-password').value = '';
+            document.getElementById('auth-error-msg').style.display = 'none';
+        }
+
+        async function handleAuthSubmit(e) {
+            if (e) e.preventDefault();
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const errorMsg = document.getElementById('auth-error-msg');
+            const submitBtn = document.getElementById('auth-submit-btn');
+
+            if (!username || !password) {
+                errorMsg.innerText = 'Please enter both username and password.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            errorMsg.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Please wait...';
+
+            const endpoint = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
+            const fallbackEndpoint = isRegisterMode ? '/auth/register' : '/auth/login';
+            const payload = isRegisterMode
+                ? { username, password, initial_board: currentBoard }
+                : { username, password };
+
+            try {
+                let res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    res = await fetch(fallbackEndpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.detail || 'Authentication failed.');
+                }
+
+                // Success
+                jwtToken = data.access_token;
+                currentUser = data.user;
+                localStorage.setItem(TOKEN_STORAGE_KEY, jwtToken);
+                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
+
+                closeAuthModal();
+                updateAuthHeaderUI();
+                document.getElementById('status-text').innerText = `👋 Welcome, ${currentUser.username}! Board synced.`;
+
+                // Fetch user board
+                await loadUserBoard();
+            } catch (err) {
+                errorMsg.innerText = err.message || 'Authentication error.';
+                errorMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = isRegisterMode ? 'Create Account' : 'Sign In';
+            }
+        }
+
+        async function loadUserBoard() {
+            if (!jwtToken) return;
+            try {
+                let res = await fetch('/api/user/board', {
+                    headers: getAuthHeaders()
+                });
+                if (!res.ok) {
+                    res = await fetch('/user/board', {
+                        headers: getAuthHeaders()
+                    });
+                }
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.board_state && data.board_state.columns) {
+                        currentBoard = data.board_state;
+                        renderBoard();
+                    }
+                }
+            } catch (err) {
+                console.warn("Could not load user board:", err);
+            }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            jwtToken = null;
+            localStorage.removeItem(TOKEN_STORAGE_KEY);
+            localStorage.removeItem(USER_STORAGE_KEY);
+            updateAuthHeaderUI();
+            document.getElementById('status-text').innerText = '👋 You have been logged out. Operating in Guest mode.';
+        }
+
+        async function checkAuthSession() {
+            if (!jwtToken) {
+                updateAuthHeaderUI();
+                return;
+            }
+
+            try {
+                let res = await fetch('/api/auth/me', { headers: getAuthHeaders() });
+                if (!res.ok) {
+                    res = await fetch('/auth/me', { headers: getAuthHeaders() });
+                }
+
+                if (res.ok) {
+                    const data = await res.json();
+                    currentUser = data.user;
+                    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
+                    updateAuthHeaderUI();
+                    await loadUserBoard();
+                } else {
+                    handleLogout();
+                }
+            } catch (err) {
+                console.warn("Auth check offline, using cached credentials if any:", err);
+                const cachedUser = localStorage.getItem(USER_STORAGE_KEY);
+                if (cachedUser) {
+                    try { currentUser = JSON.parse(cachedUser); } catch(e) {}
+                }
+                updateAuthHeaderUI();
+            }
+        }
 
         // Render board UI
         function renderBoard() {
@@ -602,6 +1066,7 @@
                     const [moved] = currentBoard.columns[sourceColIdx].cards.splice(sourceCardIdx, 1);
                     currentBoard.columns[targetColIdx].cards.push(moved);
                     renderBoard();
+                    scheduleAutoSave();
                 });
             });
 
@@ -619,6 +1084,7 @@
                             tags: []
                         });
                         renderBoard();
+                        scheduleAutoSave();
                     }
                 });
             });
@@ -635,6 +1101,7 @@
                     const colIdx = parseInt(textEl.dataset.colIdx);
                     const cardIdx = parseInt(textEl.dataset.cardIdx);
                     currentBoard.columns[colIdx].cards[cardIdx].text = textEl.innerText.trim();
+                    scheduleAutoSave();
                 });
 
                 textEl.addEventListener('keydown', (e) => {
@@ -652,6 +1119,7 @@
                     const cardIdx = parseInt(btn.dataset.cardIdx);
                     currentBoard.columns[colIdx].cards.splice(cardIdx, 1);
                     renderBoard();
+                    scheduleAutoSave();
                 });
             });
 
@@ -664,6 +1132,7 @@
                     const cycle = { 'high': 'medium', 'medium': 'low', 'low': 'high' };
                     card.priority = cycle[card.priority || 'medium'] || 'medium';
                     renderBoard();
+                    scheduleAutoSave();
                 });
             });
         }
@@ -684,6 +1153,7 @@
             if (PRESETS[selected]) {
                 currentBoard = JSON.parse(JSON.stringify(PRESETS[selected]));
                 renderBoard();
+                scheduleAutoSave();
                 document.getElementById('status-text').innerText = `📌 Loaded "${selected}" preset.`;
             }
         });
@@ -703,13 +1173,13 @@
                 });
                 let response = await fetch('/command', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: payload
                 });
                 if (!response.ok) {
                     response = await fetch('/api/command', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: getAuthHeaders(),
                         body: payload
                     });
                 }
@@ -798,8 +1268,19 @@
             micBtn.style.opacity = '0.5';
         }
 
-        // Initial render
+        // Modal Event Listeners
+        document.getElementById('auth-modal-close').addEventListener('click', closeAuthModal);
+        document.getElementById('tab-login').addEventListener('click', () => openAuthModal(false));
+        document.getElementById('tab-register').addEventListener('click', () => openAuthModal(true));
+        document.getElementById('guest-btn').addEventListener('click', closeAuthModal);
+        document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
+        document.getElementById('auth-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'auth-modal') closeAuthModal();
+        });
+
+        // Initial render & session restore
         renderBoard();
+        checkAuthSession();
     </script>
 </body>
 </html>

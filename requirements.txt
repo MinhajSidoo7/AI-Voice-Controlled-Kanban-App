@@ -7,3 +7,4 @@ google-cloud-secret-manager>=2.0.0
 python-dotenv>=1.0.0
 gradio-client>=1.0.0
 uvicorn>=0.28.0
+PyJWT>=2.8.0

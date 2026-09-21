@@ -919,4 +919,10 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.launch()
+    auth_user = os.environ.get("GRADIO_AUTH_USER")
+    auth_pass = os.environ.get("GRADIO_AUTH_PASSWORD")
+    if auth_user and auth_pass:
+        print(f"🔒 Launching Gradio with Basic Authentication for user: {auth_user}")
+        app.launch(auth=(auth_user, auth_pass))
+    else:
+        app.launch()

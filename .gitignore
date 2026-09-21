@@ -13,6 +13,9 @@ __pycache__/
 
 # Shared runtime state
 board_state.json
+*.db
+*.sqlite
+*.sqlite3
 
 # IDE / Editor
 .vscode/

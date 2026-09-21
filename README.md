@@ -24,6 +24,7 @@ Speak natural voice commands like *"Add a card called Fix memory leak to In Prog
   - Instant card filtering with search query highlighting.
   - Collapsible columns and task counters.
 - **🔄 Multi-Client Live Sync:** Includes a headless shared-state backend (`board_state.json`) and an automated Python client (`gradio_client`) for agentic workflows.
+- **🔐 JWT Authentication & Cloud Sync:** Secure user registration, salted PBKDF2 password hashing, JWT Bearer tokens, and per-user Kanban board persistence with SQLite and auto-save.
 
 ---
 
@@ -205,24 +206,53 @@ uvicorn api.index:app --reload --port 8000
 
 ---
 
+## 🔐 Authentication & Security
+
+The application includes a dual-layer authentication system:
+
+### 1. Web App & FastAPI REST Endpoints (JWT Bearer Tokens)
+- **Password Security:** Salted PBKDF2-HMAC-SHA256 (100,000 iterations) using Python's standard library `hashlib`.
+- **Stateless Tokens:** Cryptographically signed HS256 JWT access tokens via `PyJWT`.
+- **Database:** Serverless-ready SQLite store (`kanban_users.db` or `/tmp/kanban_users.db` on Vercel) for user credentials and personalized boards.
+- **API Endpoints:**
+  - `POST /api/auth/register` — Create account & initialize user board.
+  - `POST /api/auth/login` — Verify credentials & receive JWT token.
+  - `GET /api/auth/me` — Verify token & retrieve user profile.
+  - `GET /api/user/board` — Load user's saved board.
+  - `POST /api/user/board` — Auto-save & sync board changes.
+  - `POST /api/command` — Protected voice execution (auto-saves board state for authenticated user).
+- **Guest Mode:** Visitors can still try the board offline/without an account; logging in unlocks cloud saving and sync across browser sessions.
+
+### 2. Gradio Application (Basic Auth)
+For local or hosted Gradio deployments (`kanban_voice.py`), you can optionally password-protect the interface by specifying environment variables:
+```env
+GRADIO_AUTH_USER=admin
+GRADIO_AUTH_PASSWORD=your_password
+```
+
+---
+
 ## 📂 Project Structure
 
 ```
 AI Voice-Controlled Kanban App/
 ├── api/
-│   ├── index.py                                  # Vercel FastAPI serverless endpoint (/api/command)
+│   ├── index.py                                  # Vercel FastAPI serverless endpoint (/api/command, auth)
 │   └── requirements.txt                          # Serverless-specific slim dependencies
 ├── public/
 │   └── index.html                                # Standalone glassmorphic SPA frontend
-├── kanban_voice.py                               # Full interactive Gradio 6 application
+├── auth.py                                       # Password hashing, JWT lifecycle & SQLite user storage
+├── index.html                                    # Root web frontend with Auth modal & live cloud sync
+├── kanban_voice.py                               # Full interactive Gradio 6 application (with optional auth)
 ├── kanban_actions.py                             # Pure Python state mutations & fuzzy matcher
 ├── ai_service.py                                 # Intent parsing service (Gemini + Secret Manager + OpenAI)
 ├── kanban_board_with_live_sync.py                # Shared state live-sync server with API endpoints
 ├── python_gradio_client_for_live_kanban_sync.py  # Automation script using gradio_client
-├── test_app.py                                   # Automated test suite (9/9 passing)
+├── test_app.py                                   # Intent parsing & fuzzy matching tests (9/9 passing)
+├── test_auth.py                                  # Auth unit & integration test suite (7/7 passing)
 ├── vercel.json                                   # Vercel serverless function & routing configuration
 ├── requirements.txt                              # Complete project dependencies
-├── .env.example                                  # API keys template
+├── .env.example                                  # API keys & auth configuration template
 ├── .gitignore                                    # Excludes virtual environments and state files
 └── README.md                                     # Complete technical documentation
 ```
