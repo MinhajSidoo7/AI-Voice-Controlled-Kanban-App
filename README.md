@@ -210,10 +210,12 @@ uvicorn api.index:app --reload --port 8000
 
 The application includes a dual-layer authentication system:
 
-### 1. Web App & FastAPI REST Endpoints (JWT Bearer Tokens)
+### 1. Web App & FastAPI REST Endpoints (JWT + Supabase Cloud PostgreSQL)
 - **Password Security:** Salted PBKDF2-HMAC-SHA256 (100,000 iterations) using Python's standard library `hashlib`.
 - **Stateless Tokens:** Cryptographically signed HS256 JWT access tokens via `PyJWT`.
-- **Database:** Serverless-ready SQLite store (`kanban_users.db` or `/tmp/kanban_users.db` on Vercel) for user credentials and personalized boards.
+- **Dual-Mode Database Storage:**
+  - **Supabase Cloud (PostgreSQL with native JSONB):** When `SUPABASE_URL` and `SUPABASE_KEY` are provided, users and board states are persisted to Supabase Cloud PostgreSQL with connection pooling.
+  - **Local SQLite Fallback:** When Supabase keys are not present, seamlessly falls back to `kanban_users.db` for 100% offline local testing.
 - **API Endpoints:**
   - `POST /api/auth/register` — Create account & initialize user board.
   - `POST /api/auth/login` — Verify credentials & receive JWT token.
@@ -221,7 +223,26 @@ The application includes a dual-layer authentication system:
   - `GET /api/user/board` — Load user's saved board.
   - `POST /api/user/board` — Auto-save & sync board changes.
   - `POST /api/command` — Protected voice execution (auto-saves board state for authenticated user).
-- **Guest Mode:** Visitors can still try the board offline/without an account; logging in unlocks cloud saving and sync across browser sessions.
+- **Guest Mode:** Visitors can try the board immediately; signing in enables permanent cloud persistence and multi-device sync.
+
+#### 🐘 Supabase SQL Setup Script
+In your Supabase project's **SQL Editor**, execute:
+```sql
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    salt TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_users_username_lower ON users (LOWER(username));
+
+CREATE TABLE IF NOT EXISTS user_boards (
+    user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    board_data JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
 
 ### 2. Gradio Application (Basic Auth)
 For local or hosted Gradio deployments (`kanban_voice.py`), you can optionally password-protect the interface by specifying environment variables:
@@ -229,6 +250,7 @@ For local or hosted Gradio deployments (`kanban_voice.py`), you can optionally p
 GRADIO_AUTH_USER=admin
 GRADIO_AUTH_PASSWORD=your_password
 ```
+
 
 ---
 

@@ -8,3 +8,4 @@ python-dotenv>=1.0.0
 gradio-client>=1.0.0
 uvicorn>=0.28.0
 PyJWT>=2.8.0
+supabase>=2.3.0

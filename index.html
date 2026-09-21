@@ -570,6 +570,73 @@
         .text-link-btn:hover {
             color: var(--text-main);
         }
+
+        /* Prominent Welcome & Auth Banner */
+        .welcome-banner {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.16) 0%, rgba(16, 185, 129, 0.12) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .banner-content {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .banner-icon {
+            font-size: 26px;
+        }
+
+        .banner-text strong {
+            display: block;
+            color: #f8fafc;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .banner-text span {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-sm {
+            padding: 7px 16px;
+            font-size: 13px;
+            height: auto;
+            margin-top: 0;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        }
+
+        .btn-text-sm {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: color 0.2s;
+        }
+
+        .btn-text-sm:hover {
+            color: var(--text-main);
+        }
     </style>
 </head>
 <body>
@@ -586,6 +653,21 @@
             <div id="auth-header-container" class="auth-container"></div>
         </div>
     </header>
+
+    <!-- Prominent Welcome & Auth Callout -->
+    <div id="auth-welcome-banner" class="welcome-banner" style="display: none;">
+        <div class="banner-content">
+            <span class="banner-icon">🔐</span>
+            <div class="banner-text">
+                <strong>Welcome to AI Voice Kanban!</strong>
+                <span>Sign in or create an account to sync your boards with Supabase Cloud, or continue exploring as guest.</span>
+            </div>
+        </div>
+        <div class="banner-actions">
+            <button class="btn btn-sm" id="banner-signin-btn">Sign In / Register</button>
+            <button class="btn-text-sm" id="banner-dismiss-btn" title="Dismiss banner">✕ Dismiss</button>
+        </div>
+    </div>
 
     <div class="controls-bar">
         <div class="input-group" style="flex: 3;">
@@ -738,26 +820,35 @@
 
         function updateAuthHeaderUI() {
             const container = document.getElementById('auth-header-container');
-            if (!container) return;
+            const welcomeBanner = document.getElementById('auth-welcome-banner');
 
             if (currentUser) {
-                const initial = (currentUser.username || 'U')[0].toUpperCase();
-                container.innerHTML = `
-                    <div class="user-pill">
-                        <span class="user-avatar">${initial}</span>
-                        <span>${currentUser.username}</span>
-                        <span id="sync-indicator" class="sync-badge" title="Changes auto-saved to cloud">☁️ Saved</span>
-                    </div>
-                    <button class="btn-outline-sm" id="logout-btn" title="Sign out of your account">Log Out</button>
-                `;
-                document.getElementById('logout-btn').addEventListener('click', handleLogout);
+                if (welcomeBanner) welcomeBanner.style.display = 'none';
+                if (container) {
+                    const initial = (currentUser.username || 'U')[0].toUpperCase();
+                    container.innerHTML = `
+                        <div class="user-pill">
+                            <span class="user-avatar">${initial}</span>
+                            <span>${currentUser.username}</span>
+                            <span id="sync-indicator" class="sync-badge" title="Changes auto-saved to Supabase cloud">☁️ Cloud Synced</span>
+                        </div>
+                        <button class="btn-outline-sm" id="logout-btn" title="Sign out of your account">Log Out</button>
+                    `;
+                    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+                }
             } else {
-                container.innerHTML = `
-                    <button class="btn-auth-trigger" id="open-auth-btn">
-                        <span>🔐</span> Sign In
-                    </button>
-                `;
-                document.getElementById('open-auth-btn').addEventListener('click', () => openAuthModal(false));
+                if (welcomeBanner) {
+                    const dismissed = sessionStorage.getItem('kanban_dismiss_banner');
+                    welcomeBanner.style.display = dismissed ? 'none' : 'flex';
+                }
+                if (container) {
+                    container.innerHTML = `
+                        <button class="btn-auth-trigger" id="open-auth-btn">
+                            <span>🔐</span> Sign In / Register
+                        </button>
+                    `;
+                    document.getElementById('open-auth-btn').addEventListener('click', () => openAuthModal(false));
+                }
             }
         }
 
@@ -1268,7 +1359,7 @@
             micBtn.style.opacity = '0.5';
         }
 
-        // Modal Event Listeners
+        // Modal & Banner Event Listeners
         document.getElementById('auth-modal-close').addEventListener('click', closeAuthModal);
         document.getElementById('tab-login').addEventListener('click', () => openAuthModal(false));
         document.getElementById('tab-register').addEventListener('click', () => openAuthModal(true));
@@ -1276,6 +1367,12 @@
         document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
         document.getElementById('auth-modal').addEventListener('click', (e) => {
             if (e.target.id === 'auth-modal') closeAuthModal();
+        });
+        document.getElementById('banner-signin-btn')?.addEventListener('click', () => openAuthModal(false));
+        document.getElementById('banner-dismiss-btn')?.addEventListener('click', () => {
+            const banner = document.getElementById('auth-welcome-banner');
+            if (banner) banner.style.display = 'none';
+            sessionStorage.setItem('kanban_dismiss_banner', 'true');
         });
 
         // Initial render & session restore
