@@ -19,6 +19,13 @@ load_dotenv()
 
 HTML_TEMPLATE = """
 <div class="kanban-wrapper">
+    ${(() => {
+        window.__esc = window.__esc || function(s) {
+            if (!s && s !== 0) return '';
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        };
+        return '';
+    })()}
     <div class="kanban-header">
         <div class="header-left">
             <h2>${board_title}</h2>
@@ -62,7 +69,7 @@ HTML_TEMPLATE = """
                         <button class="collapse-btn" data-col-idx="${colIdx}" title="${col.collapsed ? 'Expand column' : 'Collapse column'}">
                             ${col.collapsed ? '▶' : '▼'}
                         </button>
-                        <span class="col-title">${col.title}</span>
+                        <span class="col-title">${window.__esc(col.title)}</span>
                     </div>
                     <span class="col-count" style="background: ${col.color}22; color: ${col.color}">
                         ${col.cards ? col.cards.length : 0}
@@ -74,11 +81,11 @@ HTML_TEMPLATE = """
                             <div class="card-priority priority-${card.priority || 'medium'}"></div>
                             <div class="card-content">
                                 <div class="card-text" data-col-idx="${colIdx}" data-card-idx="${cardIdx}" title="Click to edit text">
-                                    ${card.text}
+                                    ${window.__esc(card.text)}
                                 </div>
                                 <div class="card-footer">
                                     <div class="card-tags">
-                                        ${(card.tags || []).map(t => '<span class="tag">' + t + '</span>').join('')}
+                                        ${(card.tags || []).map(t => '<span class="tag">' + window.__esc(t) + '</span>').join('')}
                                     </div>
                                     <div class="card-actions">
                                         <button class="priority-cycle" data-col-idx="${colIdx}" data-card-idx="${cardIdx}" title="Cycle priority: High / Med / Low">

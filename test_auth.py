@@ -8,6 +8,7 @@ import os
 import unittest
 import tempfile
 import sqlite3
+import uuid
 from datetime import timedelta
 
 # Set temporary database path for testing before importing auth
@@ -99,18 +100,19 @@ class TestKanbanAuth(unittest.TestCase):
 
     def test_user_registration_and_authentication(self):
         # Register user
-        user, err = create_user("bob", "password123", db_path=self.db_path)
+        u_bob = f"bob_{uuid.uuid4().hex[:6]}"
+        user, err = create_user(u_bob, "password123", db_path=self.db_path)
         self.assertIsNone(err)
         self.assertIsNotNone(user)
-        self.assertEqual(user["username"], "bob")
+        self.assertEqual(user["username"], u_bob)
 
         # Duplicate username should fail
-        dup, err2 = create_user("bob", "anotherpass", db_path=self.db_path)
+        dup, err2 = create_user(u_bob, "anotherpass", db_path=self.db_path)
         self.assertIsNone(dup)
         self.assertIn("already exists", err2)
 
         # Username case insensitivity
-        dup_case, err3 = create_user("BOB", "anotherpass", db_path=self.db_path)
+        dup_case, err3 = create_user(u_bob.upper(), "anotherpass", db_path=self.db_path)
         self.assertIsNone(dup_case)
         self.assertIn("already exists", err3)
 
@@ -121,20 +123,21 @@ class TestKanbanAuth(unittest.TestCase):
         self.assertIn("at least 4 characters", err_short_p)
 
         # Authenticate valid
-        auth_success = authenticate_user("bob", "password123", db_path=self.db_path)
+        auth_success = authenticate_user(u_bob, "password123", db_path=self.db_path)
         self.assertIsNotNone(auth_success)
-        self.assertEqual(auth_success["username"], "bob")
+        self.assertEqual(auth_success["username"], u_bob)
 
         # Authenticate invalid password
-        auth_fail = authenticate_user("bob", "wrongpass", db_path=self.db_path)
+        auth_fail = authenticate_user(u_bob, "wrongpass", db_path=self.db_path)
         self.assertIsNone(auth_fail)
 
         # Authenticate non-existent user
-        auth_none = authenticate_user("unknown", "password123", db_path=self.db_path)
+        auth_none = authenticate_user(f"unknown_{uuid.uuid4().hex[:6]}", "password123", db_path=self.db_path)
         self.assertIsNone(auth_none)
 
     def test_user_board_persistence(self):
-        user, _ = create_user("charlie", "mypassword", db_path=self.db_path)
+        u_charlie = f"charlie_{uuid.uuid4().hex[:6]}"
+        user, _ = create_user(u_charlie, "mypassword", db_path=self.db_path)
         user_id = user["id"]
 
         test_board = {
@@ -163,36 +166,38 @@ class TestKanbanAuth(unittest.TestCase):
 
     def test_api_register_and_login_endpoints(self):
         # Register via API
-        reg_payload = {"username": "diana", "password": "dianapassword"}
+        u_diana = f"diana_{uuid.uuid4().hex[:6]}"
+        reg_payload = {"username": u_diana, "password": "dianapassword"}
         res = self.client.post("/api/auth/register", json=reg_payload)
         self.assertEqual(res.status_code, 200)
         data = res.json()
         self.assertIn("access_token", data)
-        self.assertEqual(data["user"]["username"], "diana")
+        self.assertEqual(data["user"]["username"], u_diana)
 
         token = data["access_token"]
 
         # /auth/me with valid Bearer token
         me_res = self.client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
         self.assertEqual(me_res.status_code, 200)
-        self.assertEqual(me_res.json()["user"]["username"], "diana")
+        self.assertEqual(me_res.json()["user"]["username"], u_diana)
 
         # /auth/me without token should be 401
         me_fail = self.client.get("/api/auth/me")
         self.assertEqual(me_fail.status_code, 401)
 
         # Login via API
-        login_res = self.client.post("/api/auth/login", json={"username": "diana", "password": "dianapassword"})
+        login_res = self.client.post("/api/auth/login", json={"username": u_diana, "password": "dianapassword"})
         self.assertEqual(login_res.status_code, 200)
         login_data = login_res.json()
         self.assertIn("access_token", login_data)
 
         # Login with bad password
-        login_bad = self.client.post("/api/auth/login", json={"username": "diana", "password": "badpassword"})
+        login_bad = self.client.post("/api/auth/login", json={"username": u_diana, "password": "badpassword"})
         self.assertEqual(login_bad.status_code, 401)
 
     def test_api_user_board_sync(self):
-        reg = self.client.post("/api/auth/register", json={"username": "evan", "password": "evanpassword"}).json()
+        u_evan = f"evan_{uuid.uuid4().hex[:6]}"
+        reg = self.client.post("/api/auth/register", json={"username": u_evan, "password": "evanpassword"}).json()
         token = reg["access_token"]
         auth_header = {"Authorization": f"Bearer {token}"}
 
@@ -214,7 +219,8 @@ class TestKanbanAuth(unittest.TestCase):
         self.assertEqual(verify_b.json()["board_state"]["title"], "Evan's Roadmap")
 
     def test_api_command_with_user_auto_save(self):
-        reg = self.client.post("/api/auth/register", json={"username": "fiona", "password": "fionapassword"}).json()
+        u_fiona = f"fiona_{uuid.uuid4().hex[:6]}"
+        reg = self.client.post("/api/auth/register", json={"username": u_fiona, "password": "fionapassword"}).json()
         token = reg["access_token"]
         auth_header = {"Authorization": f"Bearer {token}"}
 
@@ -244,7 +250,7 @@ class TestKanbanAuth(unittest.TestCase):
         cmd_res = self.client.post("/api/command", json=cmd_payload, headers=auth_header)
         self.assertEqual(cmd_res.status_code, 200)
         cmd_data = cmd_res.json()
-        self.assertIn("User: fiona", cmd_data["status"])
+        self.assertIn(f"User: {u_fiona}", cmd_data["status"])
 
         # Check that user board in database was auto-saved with moved card
         saved_b = self.client.get("/api/user/board", headers=auth_header).json()["board_state"]

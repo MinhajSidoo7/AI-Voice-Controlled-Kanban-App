@@ -33,7 +33,7 @@ app = FastAPI(title="AI Voice-Controlled Kanban API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -169,6 +169,8 @@ def save_board(req: BoardSyncRequest, user: Dict[str, Any] = Depends(get_current
 def handle_command(req: CommandRequest, user: Optional[Dict[str, Any]] = Depends(get_current_user_optional)):
     if not req.transcript or not req.transcript.strip():
         raise HTTPException(status_code=400, detail="Transcript cannot be empty.")
+    if len(req.transcript) > 500:
+        raise HTTPException(status_code=400, detail="Transcript exceeds maximum length of 500 characters.")
 
     pref = "auto"
     p = (req.provider or "").lower()

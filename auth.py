@@ -165,8 +165,12 @@ def create_user(
     clean_username = username.strip()
     if not clean_username or len(clean_username) < 3:
         return None, "Username must be at least 3 characters long."
+    if len(clean_username) > 50:
+        return None, "Username cannot exceed 50 characters."
     if not password or len(password) < 4:
         return None, "Password must be at least 4 characters long."
+    if len(password) > 128:
+        return None, "Password cannot exceed 128 characters."
 
     pwd_hash, salt = hash_password(password)
     user_id = str(secrets.token_hex(12))
