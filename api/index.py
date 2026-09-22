@@ -16,7 +16,7 @@ import os
 # Ensure root workspace directory is in sys.path so modules like ai_service, kanban_actions & auth resolve
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ai_service import parse_voice_command
+from ai_service import parse_voice_command, get_gemini_api_key
 from kanban_actions import action_dispatcher, PRESET_BOARDS
 from auth import (
     create_user,
@@ -102,7 +102,18 @@ class BoardSyncRequest(BaseModel):
 @app.get("/api/health")
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "ai-voice-kanban-api"}
+    gemini_key, _ = get_gemini_api_key()
+    matching_keys = [
+        k for k in os.environ.keys()
+        if any(term in k.upper() for term in ("GEMINI", "GOOGLE", "SUPABASE", "JWT"))
+    ]
+    return {
+        "status": "ok",
+        "service": "ai-voice-kanban-api",
+        "gemini_configured": bool(gemini_key),
+        "gemini_key_length": len(gemini_key) if gemini_key else 0,
+        "matching_env_keys": matching_keys,
+    }
 
 
 @app.get("/api/presets")

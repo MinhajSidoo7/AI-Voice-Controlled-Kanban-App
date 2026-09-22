@@ -166,12 +166,33 @@ def get_gemini_api_key() -> Tuple[Optional[str], bool]:
     if _cached_gemini_key:
         return _cached_gemini_key, _secret_manager_used
 
-    # Check env var first (supports both GEMINI_API_KEY and GOOGLE_API_KEY)
-    key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
-    if key:
-        _cached_gemini_key = key
-        _secret_manager_used = False
-        return key, False
+    # 1. Check common environment variable names
+    candidates = [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "GEMINI_KEY",
+        "GOOGLE_GEMINI_API_KEY",
+        "GEMINI_TOKEN",
+        "NEXT_PUBLIC_GEMINI_API_KEY",
+    ]
+    for k in candidates:
+        val = os.getenv(k)
+        if val:
+            cleaned = val.strip().strip('"').strip("'")
+            if cleaned:
+                _cached_gemini_key = cleaned
+                _secret_manager_used = False
+                return cleaned, False
+
+    # 2. Case-insensitive scan across all environment variables
+    for env_k, env_v in os.environ.items():
+        norm = env_k.upper()
+        if "GEMINI" in norm and ("KEY" in norm or "TOKEN" in norm):
+            cleaned = env_v.strip().strip('"').strip("'")
+            if cleaned:
+                _cached_gemini_key = cleaned
+                _secret_manager_used = False
+                return cleaned, False
 
     # Try Google Cloud Secret Manager
     try:
