@@ -166,8 +166,8 @@ def get_gemini_api_key() -> Tuple[Optional[str], bool]:
     if _cached_gemini_key:
         return _cached_gemini_key, _secret_manager_used
 
-    # Check env var first
-    key = os.getenv("GEMINI_API_KEY", "").strip()
+    # Check env var first (supports both GEMINI_API_KEY and GOOGLE_API_KEY)
+    key = (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "").strip()
     if key:
         _cached_gemini_key = key
         _secret_manager_used = False
