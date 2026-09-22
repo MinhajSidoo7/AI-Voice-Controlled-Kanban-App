@@ -36,15 +36,27 @@ else:
 _supabase_client = None
 
 
+def normalize_supabase_url(url: Optional[str]) -> Optional[str]:
+    """Normalize Supabase URL by stripping /rest/v1 suffix and trailing slashes."""
+    if not url:
+        return None
+    cleaned = url.strip()
+    if "/rest/v1" in cleaned:
+        cleaned = cleaned.split("/rest/v1")[0]
+    return cleaned.rstrip("/")
+
+
 def get_supabase_client():
     """Returns initialized Supabase client if credentials exist, else None."""
     global _supabase_client
-    if not SUPABASE_URL or not SUPABASE_KEY:
+    url = normalize_supabase_url(os.environ.get("SUPABASE_URL") or SUPABASE_URL)
+    key = os.environ.get("SUPABASE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or SUPABASE_KEY
+    if not url or not key:
         return None
     if _supabase_client is None:
         try:
             from supabase import create_client
-            _supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+            _supabase_client = create_client(url, key)
         except Exception as err:
             print(f"⚠️ Could not initialize Supabase client: {err}. Falling back to SQLite.")
             return None
